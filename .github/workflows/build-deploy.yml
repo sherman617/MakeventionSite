@@ -32,7 +32,7 @@ jobs:
       TARGET: ${{ inputs.target }}
     steps:
       - name: Check out ${{ inputs.ref }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ inputs.ref }}
 
@@ -47,7 +47,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          base="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq .html_url 2>/dev/null || true)"
+          # Use the Pages address (custom domain if one is set). gh prints the error
+          # body on stdout when Pages isn't enabled yet, so only accept a real URL.
+          base=""
+          if out="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq .html_url 2>/dev/null)"; then
+            case "$out" in http://*|https://*) base="$out" ;; esac
+          fi
           if [ -z "$base" ]; then
             owner="${GITHUB_REPOSITORY%%/*}"; repo="${GITHUB_REPOSITORY#*/}"
             base="https://${owner,,}.github.io/${repo}/"
@@ -68,30 +73,35 @@ jobs:
         run: |
           set -euo pipefail
           remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          if git ls-remote --exit-code --heads "$remote" gh-pages >/dev/null 2>&1; then
-            git clone --quiet --depth 1 --branch gh-pages "$remote" ../site
-          else
-            mkdir ../site && git -C ../site init --quiet -b gh-pages && git -C ../site remote add origin "$remote"
-          fi
-          cd ../site
-          if [ "$TARGET" = "live" ]; then
-            # Replace everything except the preview copy and the custom-domain file.
-            find . -mindepth 1 -maxdepth 1 ! -name .git ! -name preview ! -name CNAME -exec rm -rf {} +
-            cp -R "$GITHUB_WORKSPACE/public/." .
-          else
-            rm -rf preview && mkdir preview
-            cp -R "$GITHUB_WORKSPACE/public/." preview/
-          fi
-          touch .nojekyll
-          git add -A
-          if git diff --cached --quiet; then echo "No changes to publish."; exit 0; fi
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-            commit --quiet -m "Publish ${TARGET} from ${{ inputs.ref }} @ ${GITHUB_SHA::7}"
-          for i in 1 2 3; do
-            if git push --quiet origin gh-pages; then exit 0; fi
-            echo "Push rejected, retrying after rebase ($i)…"; sleep 5
-            git pull --quiet --rebase origin gh-pages
+          site="$RUNNER_TEMP/site"
+          # Lay this build on top of the current gh-pages branch and push. If the
+          # other copy (live/preview) pushed in the meantime, start over from its result.
+          for attempt in 1 2 3 4 5; do
+            rm -rf "$site"
+            if git ls-remote --exit-code --heads "$remote" gh-pages >/dev/null 2>&1; then
+              git clone --quiet --depth 1 --branch gh-pages "$remote" "$site"
+            else
+              mkdir -p "$site" && git -C "$site" init --quiet -b gh-pages && git -C "$site" remote add origin "$remote"
+            fi
+            cd "$site"
+            if [ "$TARGET" = "live" ]; then
+              # Replace everything except the preview copy and the custom-domain file.
+              find . -mindepth 1 -maxdepth 1 ! -name .git ! -name preview ! -name CNAME -exec rm -rf {} +
+              cp -R "$GITHUB_WORKSPACE/public/." .
+            else
+              rm -rf preview && mkdir preview
+              cp -R "$GITHUB_WORKSPACE/public/." preview/
+            fi
+            touch .nojekyll
+            git add -A
+            if git diff --cached --quiet; then echo "No changes to publish."; exit 0; fi
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit --quiet -m "Publish ${TARGET} from ${{ inputs.ref }} @ ${GITHUB_SHA::7}"
+            if git push --quiet origin gh-pages; then echo "Published."; exit 0; fi
+            echo "gh-pages changed while publishing; retrying ($attempt)…"
+            cd "$GITHUB_WORKSPACE"; sleep $((attempt * 3))
           done
+          echo "::error::Could not publish to gh-pages after several attempts."
           exit 1
 
       - name: Summary
