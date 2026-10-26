@@ -1,0 +1,11 @@
+{{- $s := .s -}}{{- $page := .page -}}
+{{- with $s.items }}
+<div class="cols cols--{{ len . }}">
+  {{- range . }}
+  <div class="col">
+    <h2 class="banner banner--{{ .style | default "blue-purple" }}">{{ .heading | default "" | $page.RenderString }}</h2>
+    <div class="prose is-medium">{{ $page.RenderString (dict "display" "block") (.body | default "") }}</div>
+  </div>
+  {{- end }}
+</div>
+{{- end }}

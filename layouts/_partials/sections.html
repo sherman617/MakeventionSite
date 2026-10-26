@@ -1,0 +1,10 @@
+{{- /* Renders the list of content blocks ("sections") in a page's front matter. */ -}}
+{{- $page := . -}}
+{{- range .Params.sections -}}
+  {{- $tpl := printf "sections/%s.html" (.type | default "text") -}}
+  {{- if templates.Exists (printf "_partials/%s" $tpl) -}}
+    {{ partial $tpl (dict "s" . "page" $page) }}
+  {{- else -}}
+    {{- warnf "Unknown section type %q on %s" .type $page.File.Path -}}
+  {{- end -}}
+{{- end -}}

@@ -1,0 +1,17 @@
+items:
+  - label: Home
+    url: /
+  - label: Exhibitors
+    url: /exhibitors/
+  - label: Sponsors
+    url: /sponsors/
+  - label: Volunteers
+    url: /volunteer/
+  - label: Bloominglabs
+    url: /meet-the-makers/
+  - label: Social Media & News
+    url: /team/
+  - label: Contact
+    url: /contact-us/
+  - label: Donate
+    url: /donate-to-makevention/

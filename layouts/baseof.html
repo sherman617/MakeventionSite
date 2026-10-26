@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="{{ site.Language.LanguageCode | default "en-us" }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {{- $site := hugo.Data.site }}
+  <title>{{ if .IsHome }}{{ $site.site_title }} – {{ $site.tagline }}{{ else }}{{ .Title }} – {{ $site.site_title }}{{ end }}</title>
+  <meta name="description" content="{{ .Params.description | default $site.tagline }}">
+  {{- if site.Params.preview }}
+  <meta name="robots" content="noindex, nofollow">
+  {{- end }}
+  <link rel="canonical" href="{{ .Permalink }}">
+  {{- with $site.icon }}
+  <link rel="icon" href="{{ partial "url.html" . }}">
+  <link rel="apple-touch-icon" href="{{ partial "url.html" . }}">
+  {{- end }}
+  <meta property="og:title" content="{{ if .IsHome }}{{ $site.site_title }}{{ else }}{{ .Title }}{{ end }}">
+  <meta property="og:description" content="{{ .Params.description | default $site.tagline }}">
+  <meta property="og:type" content="website">
+  {{- $css := resources.Get "css/main.css" | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+</head>
+<body class="{{ if .IsHome }}is-home{{ else }}page-{{ with .File }}{{ .ContentBaseName }}{{ else }}{{ .Kind }}{{ end }}{{ end }}">
+  <a class="skip-link" href="#content">Skip to content</a>
+  {{- if site.Params.preview }}
+  <div class="preview-bar" role="note"><strong>Preview copy.</strong> This is not the live site. Changes here go live only after they are published.</div>
+  {{- end }}
+  {{ partial "header.html" . }}
+  <main id="content" class="site-main">
+    <div class="container">
+      <h1 class="visually-hidden">{{ .Title }}</h1>
+      {{ block "main" . }}{{ end }}
+    </div>
+  </main>
+  {{ partial "footer.html" . }}
+  <script>
+    (function () {
+      var b = document.querySelector('.nav-toggle'), n = document.getElementById('site-nav');
+      if (!b || !n) return;
+      document.documentElement.classList.add('js');
+      b.addEventListener('click', function () {
+        var open = b.getAttribute('aria-expanded') === 'true';
+        b.setAttribute('aria-expanded', String(!open));
+        n.classList.toggle('is-open', !open);
+      });
+    })();
+  </script>
+</body>
+</html>

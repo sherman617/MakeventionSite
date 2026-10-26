@@ -1,0 +1,20 @@
+# Rebuilds automatically whenever a branch changes:
+#   staging -> preview copy at /preview/
+#   main    -> the live site
+name: Deploy
+
+on:
+  push:
+    branches: [main, staging]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: read
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/build-deploy.yml
+    with:
+      ref: ${{ github.ref_name }}
+      target: ${{ github.ref_name == 'main' && 'live' || 'preview' }}

@@ -1,0 +1,4 @@
+{{- $s := .s -}}
+{{- with $s.embed_url }}
+<div class="map-embed"><iframe src="{{ . }}" title="{{ $s.title | default "Map" }}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+{{- end }}

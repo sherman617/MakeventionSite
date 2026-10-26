@@ -1,0 +1,3 @@
+{{- $u := partial "url.html" .Destination -}}
+<a href="{{ $u | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text }}</a>
+{{- /* chomp trailing newline */ -}}

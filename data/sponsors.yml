@@ -1,0 +1,26 @@
+tiers:
+  - name: Gold Sponsor
+    color: "#d7c719"
+    sponsors:
+      - name: Cook Medical
+        logo: /wp-content/uploads/2025/09/cook-medical-logo-signature-1.png
+        width: 335
+        url: ""
+  - name: Electrum Sponsors
+    color: "#f0d77a"
+    sponsors:
+      - name: Indiana University Center of Excellence for Women & Technology
+        logo: /wp-content/uploads/2025/08/centerofexcellenceforwome_lockup_WEB_v1-1-1024x371.png
+        width: 337
+        url: ""
+      - name: WonderLab
+        logo: /wp-content/uploads/2025/08/WonderLab_Color_logo-1-e1790730324500.png
+        width: 301
+        url: ""
+  - name: Copper Sponsor
+    color: "#d4712b"
+    sponsors:
+      - name: Ivy Tech Community College
+        logo: /wp-content/uploads/2024/08/ivy-tech-horiz-white.png
+        width: 246
+        url: ""

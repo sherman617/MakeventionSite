@@ -1,0 +1,17 @@
+{{- $site := hugo.Data.site -}}
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-col">
+      <p class="footer-heading">{{ $site.footer_menu_heading }}</p>
+      <ul class="footer-menu">
+        {{- range hugo.Data.navigation.items }}
+        <li><a href="{{ partial "url.html" .url }}">{{ .label }}</a></li>
+        {{- end }}
+      </ul>
+    </div>
+    <div class="footer-col">
+      <p class="footer-contact">{{ $site.footer_contact | $.RenderString }}</p>
+      <p class="footer-copy">Copyright {{ now.Year }} {{ $site.copyright_name }}</p>
+    </div>
+  </div>
+</footer>

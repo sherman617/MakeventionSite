@@ -1,0 +1,4 @@
+{{- $s := .s -}}
+<div class="prose{{ if ne $s.size "normal" }} is-medium{{ end }}">
+{{ $.page.RenderString (dict "display" "block") ($s.body | default "") }}
+</div>

@@ -1,0 +1,5 @@
+{{- $s := .s -}}
+<figure class="media-figure image-figure{{ if eq $s.align "left" }} is-left{{ end }}">
+  <img src="{{ partial "url.html" $s.image }}" alt="{{ $s.alt | default "" }}" loading="lazy"{{ with $s.width }} style="width:{{ int . }}px"{{ end }}>
+  {{- with $s.caption }}<figcaption>{{ . }}</figcaption>{{ end }}
+</figure>

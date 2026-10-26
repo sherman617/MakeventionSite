@@ -1,0 +1,2 @@
+{{- $s := .s -}}
+<div class="highlight banner--{{ $s.style | default "green" }}">{{ $.page.RenderString (dict "display" "block") ($s.body | default "") }}</div>

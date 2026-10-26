@@ -1,0 +1,62 @@
+# "Publish preview to live site": copies everything on the staging branch
+# into main, then rebuilds the live site and the preview copy.
+# Run it from the Pages CMS "Publish" button, or on GitHub:
+# Actions → Publish preview to live site → Run workflow.
+name: Publish preview to live site
+
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: Filled in automatically when started from Pages CMS
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pages: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Merge staging into main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --quiet origin staging
+          if git merge-base --is-ancestor origin/staging HEAD; then
+            echo "Live site already has everything from the preview."
+          else
+            git merge --no-edit origin/staging -m "Publish preview to live site" || {
+              echo "::error::The preview and the live site both changed the same lines. Ask an admin to merge staging into main by hand."
+              exit 1
+            }
+            git push origin HEAD:main
+          fi
+          # Keep the preview branch identical to the live site afterwards.
+          git push --force-with-lease=staging:origin/staging origin HEAD:staging
+
+  live:
+    needs: merge
+    uses: ./.github/workflows/build-deploy.yml
+    with:
+      ref: main
+      target: live
+
+  preview:
+    needs: live
+    uses: ./.github/workflows/build-deploy.yml
+    with:
+      ref: staging
+      target: preview

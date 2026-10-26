@@ -1,0 +1,33 @@
+{{- $site := hugo.Data.site -}}
+{{- $here := .RelPermalink -}}
+<header class="site-header">
+  <div class="header-brand">
+    <div class="container">
+      <a class="brand" href="{{ partial "url.html" "/" }}" rel="home">
+        {{- with $site.header_image }}
+        <img class="brand__logo" src="{{ partial "url.html" . }}" alt="{{ $site.site_title }}" width="1280" height="425">
+        {{- end }}
+        <span class="brand__text">
+          <span class="brand__title">{{ $site.site_title }}</span>
+          <small class="brand__tagline">{{ $site.tagline }}</small>
+        </span>
+      </a>
+    </div>
+  </div>
+  <div class="header-nav">
+    <div class="container">
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle__bars" aria-hidden="true"></span>
+        <span class="nav-toggle__label">Menu</span>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Main menu">
+        <ul>
+          {{- range hugo.Data.navigation.items }}
+          {{- $u := partial "url.html" .url }}
+          <li><a href="{{ $u }}"{{ if eq $u $here }} aria-current="page"{{ end }}>{{ .label }}</a></li>
+          {{- end }}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>

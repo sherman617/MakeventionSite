@@ -1,0 +1,5 @@
+{{- $s := .s -}}
+<div class="cols cols--split-{{ $s.split | default "50-50" }}">
+  <div class="col prose">{{ $.page.RenderString (dict "display" "block") ($s.left | default "") }}</div>
+  <div class="col prose{{ if $s.right_centered }} is-centered{{ end }}">{{ $.page.RenderString (dict "display" "block") ($s.right | default "") }}</div>
+</div>

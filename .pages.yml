@@ -1,0 +1,265 @@
+# Pages CMS configuration — the browser editor at https://app.pagescms.org
+# See EDITING.md for how the team uses it.
+
+media:
+  - name: uploads
+    label: Uploads
+    input: static/uploads
+    output: /uploads
+    rename: safe
+  - name: legacy
+    label: Files from the old WordPress site
+    input: static/wp-content/uploads
+    output: /wp-content/uploads
+
+components:
+  bannerStyle:
+    type: select
+    label: Color
+    default: orange-red
+    options:
+      values:
+        - { name: orange-red, label: Orange to red }
+        - { name: blue-purple, label: Blue to purple }
+        - { name: amber-orange, label: Amber to orange }
+        - { name: midnight, label: Navy to blue }
+        - { name: green, label: Green }
+        - { name: dusk, label: Purple to blue }
+        - { name: grey, label: Light grey (dark text) }
+        - { name: dark, label: Black }
+        - { name: none, label: No background (plain heading) }
+
+content:
+  - name: pages
+    label: Pages
+    type: collection
+    path: content
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    view:
+      fields: [title]
+      primary: title
+    fields:
+      - name: title
+        label: Page title
+        type: string
+        required: true
+        description: Shown in the browser tab and search results.
+      - name: description
+        label: Search description
+        type: text
+        description: Optional one-sentence summary for search engines.
+      - name: hidden
+        label: Not in the menu
+        type: boolean
+        description: Informational only. The menu itself is edited under "Menu".
+      - name: sections
+        label: Page blocks
+        type: block
+        list: true
+        blockKey: type
+        blocks:
+          - name: banner
+            label: Colored heading
+            fields:
+              - { name: text, label: Heading text, type: string }
+              - { name: style, component: bannerStyle }
+              - name: align
+                label: Alignment
+                type: select
+                default: left
+                options: { values: [left, center] }
+              - name: size
+                label: Size
+                type: select
+                default: normal
+                options: { values: [normal, large] }
+          - name: text
+            label: Text
+            fields:
+              - name: body
+                label: Text
+                type: rich-text
+                options: { format: markdown, media: uploads }
+              - name: size
+                label: Text size
+                type: select
+                default: medium
+                options:
+                  values:
+                    - { name: medium, label: Large (most pages) }
+                    - { name: normal, label: Normal }
+          - name: callouts
+            label: Side-by-side boxes
+            fields:
+              - name: items
+                label: Boxes
+                type: object
+                list: true
+                fields:
+                  - { name: heading, label: Heading, type: string }
+                  - { name: style, component: bannerStyle }
+                  - name: body
+                    label: Text
+                    type: rich-text
+                    options: { format: markdown, media: uploads }
+          - name: sponsors
+            label: Sponsor logos (edited under "Sponsors")
+            fields:
+              - name: note
+                label: Note
+                type: string
+                description: Nothing to fill in. The logos come from the Sponsors list in the sidebar.
+          - name: quote
+            label: Quote box
+            fields:
+              - { name: text, label: Quote, type: text }
+              - { name: cite, label: Smaller text below (one line per row), type: text }
+          - name: video
+            label: Video
+            fields:
+              - name: youtube_url
+                label: YouTube link
+                type: string
+                description: Paste a YouTube link. Leave empty to use an uploaded video file instead.
+              - name: file
+                label: Video file
+                type: file
+                options: { media: uploads }
+              - { name: caption, label: Caption, type: string }
+          - name: image
+            label: Image
+            fields:
+              - name: image
+                label: Image
+                type: image
+                options: { media: uploads }
+              - { name: alt, label: Description for screen readers, type: string }
+              - { name: caption, label: Caption, type: string }
+              - { name: width, label: Width in pixels (optional), type: number }
+              - name: align
+                label: Alignment
+                type: select
+                default: center
+                options: { values: [center, left] }
+          - name: columns
+            label: Two columns
+            fields:
+              - name: split
+                label: Column widths
+                type: select
+                default: 50-50
+                options:
+                  values:
+                    - { name: 50-50, label: Equal }
+                    - { name: 66-33, label: Wide left, narrow right }
+                    - { name: 33-66, label: Narrow left, wide right }
+              - name: left
+                label: Left column
+                type: rich-text
+                options: { format: markdown, media: uploads }
+              - name: right
+                label: Right column
+                type: rich-text
+                options: { format: markdown, media: uploads }
+              - { name: right_centered, label: Center the right column, type: boolean }
+          - name: highlight
+            label: Highlighted text
+            fields:
+              - { name: style, component: bannerStyle }
+              - name: body
+                label: Text
+                type: rich-text
+                options: { format: markdown, media: false }
+          - name: donate_button
+            label: PayPal donate button
+            fields:
+              - name: paypal_button_id
+                label: PayPal hosted button ID
+                type: string
+          - name: map
+            label: Google map
+            fields:
+              - name: embed_url
+                label: Map embed link
+                type: string
+                description: In Google Maps choose Share → Embed a map, and paste only the address inside src="…".
+              - { name: title, label: Map description, type: string }
+          - name: spacer
+            label: Blank space
+            fields:
+              - { name: height, label: Height in pixels, type: number, default: 30 }
+
+  - name: navigation
+    label: Menu
+    type: file
+    path: data/navigation.yml
+    format: yaml
+    fields:
+      - name: items
+        label: Menu items
+        type: object
+        list: true
+        fields:
+          - { name: label, label: Label, type: string }
+          - { name: url, label: Link (for example /sponsors/), type: string }
+
+  - name: sponsors
+    label: Sponsors
+    type: file
+    path: data/sponsors.yml
+    format: yaml
+    fields:
+      - name: tiers
+        label: Sponsor levels
+        type: object
+        list: true
+        fields:
+          - { name: name, label: Level name, type: string }
+          - { name: color, label: Heading color (for example #d7c719), type: string }
+          - name: sponsors
+            label: Sponsors
+            type: object
+            list: true
+            fields:
+              - { name: name, label: Sponsor name, type: string }
+              - name: logo
+                label: Logo
+                type: image
+                options: { media: uploads }
+              - { name: width, label: Logo width in pixels, type: number }
+              - { name: url, label: Website (optional), type: string }
+
+  - name: site
+    label: Site settings
+    type: file
+    path: data/site.yml
+    format: yaml
+    fields:
+      - { name: site_title, label: Site name, type: string }
+      - { name: tagline, label: Tagline, type: string }
+      - name: header_image
+        label: Header banner image
+        type: image
+        options: { media: uploads }
+      - name: icon
+        label: Browser tab icon
+        type: image
+        options: { media: uploads }
+      - { name: footer_menu_heading, label: Footer menu heading, type: string }
+      - { name: footer_contact, label: Footer contact line, type: string }
+      - { name: copyright_name, label: Copyright name, type: string }
+
+actions:
+  - name: publish
+    label: Publish preview to live site
+    workflow: publish.yml
+    cancelable: false
+    confirm:
+      title: Publish to the live site?
+      message: Everything on the preview copy (/preview/) will go live on the public site in a minute or two. Check the preview first.
+      button: Publish
+
+settings:
+  content:
+    merge: true

@@ -1,0 +1,23 @@
+# Makevention website — Hugo configuration.
+# Page content lives in content/, site-wide settings in data/.
+# Most people should edit through Pages CMS (see EDITING.md) rather than this file.
+
+baseURL = 'https://www.makevention.org/'
+languageCode = 'en-us'
+title = 'Makevention'
+enableRobotsTXT = true
+disableKinds = ['taxonomy', 'term', 'rss', 'section']
+
+[params]
+  # Set to true automatically when the preview copy is built (see .github/workflows).
+  preview = false
+
+[markup.goldmark.renderer]
+  # Lets editors paste simple HTML (for example an embed code) inside text blocks.
+  unsafe = true
+
+[markup.goldmark.parser.attribute]
+  block = true
+
+[sitemap]
+  changeFreq = 'monthly'

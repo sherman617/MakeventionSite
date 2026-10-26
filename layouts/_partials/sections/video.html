@@ -1,0 +1,22 @@
+{{- /* Shows a YouTube video if a link is given; otherwise an uploaded video file, if it exists. Renders nothing when neither is available. */ -}}
+{{- $s := .s -}}
+{{- $yt := "" -}}
+{{- with $s.youtube_url -}}
+  {{- with findRESubmatch `(?:v=|youtu\.be/|embed/|shorts/)([A-Za-z0-9_-]{11})` . 1 -}}
+    {{- $yt = index (index . 0) 1 -}}
+  {{- end -}}
+{{- end -}}
+{{- $file := "" -}}
+{{- with $s.file -}}
+  {{- if fileExists (path.Join "static" .) -}}{{- $file = . -}}{{- end -}}
+{{- end -}}
+{{- if or $yt $file }}
+<figure class="media-figure">
+  {{- if $yt }}
+  <div class="embed"><iframe src="https://www.youtube-nocookie.com/embed/{{ $yt }}" title="{{ $s.caption | default "Video" }}" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>
+  {{- else }}
+  <video controls preload="metadata" src="{{ partial "url.html" $file }}"></video>
+  {{- end }}
+  {{- with $s.caption }}<figcaption>{{ . }}</figcaption>{{ end }}
+</figure>
+{{- end }}

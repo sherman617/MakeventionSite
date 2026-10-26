@@ -1,0 +1,7 @@
+{{- $s := .s -}}
+<blockquote class="quote">
+  <p>{{ $s.text | default "" | $.page.RenderString }}</p>
+  {{- with $s.cite }}
+  <cite>{{ delimit (apply (split (htmlEscape .) "\n") "safeHTML" ".") "<br>" | safeHTML }}</cite>
+  {{- end }}
+</blockquote>

@@ -1,0 +1,98 @@
+# Builds the site from one branch and publishes it to the gh-pages branch,
+# which GitHub Pages serves.
+#   target "live"    -> the site root (www.makevention.org/)
+#   target "preview" -> the /preview/ folder (www.makevention.org/preview/)
+# Called by deploy.yml and publish.yml; not run on its own.
+name: Build and deploy (shared steps)
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Branch to build
+        required: true
+        type: string
+      target:
+        description: live or preview
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pages: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: gh-pages-${{ inputs.target }}
+      cancel-in-progress: false
+    env:
+      HUGO_VERSION: 0.160.0
+      TARGET: ${{ inputs.target }}
+    steps:
+      - name: Check out ${{ inputs.ref }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Install Hugo
+        run: |
+          curl -sSLf -o hugo.tgz "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_linux-amd64.tar.gz"
+          mkdir -p "$HOME/.local/bin" && tar -xzf hugo.tgz -C "$HOME/.local/bin" hugo && rm hugo.tgz
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Work out the site address
+        id: url
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          base="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq .html_url 2>/dev/null || true)"
+          if [ -z "$base" ]; then
+            owner="${GITHUB_REPOSITORY%%/*}"; repo="${GITHUB_REPOSITORY#*/}"
+            base="https://${owner,,}.github.io/${repo}/"
+          fi
+          base="${base%/}/"
+          if [ "$TARGET" = "preview" ]; then base="${base}preview/"; fi
+          echo "Building for $base"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+
+      - name: Build the site
+        run: |
+          if [ "$TARGET" = "preview" ]; then export HUGO_PARAMS_PREVIEW=true; fi
+          hugo build --gc --minify --baseURL "${{ steps.url.outputs.base }}"
+
+      - name: Publish to the gh-pages branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$remote" gh-pages >/dev/null 2>&1; then
+            git clone --quiet --depth 1 --branch gh-pages "$remote" ../site
+          else
+            mkdir ../site && git -C ../site init --quiet -b gh-pages && git -C ../site remote add origin "$remote"
+          fi
+          cd ../site
+          if [ "$TARGET" = "live" ]; then
+            # Replace everything except the preview copy and the custom-domain file.
+            find . -mindepth 1 -maxdepth 1 ! -name .git ! -name preview ! -name CNAME -exec rm -rf {} +
+            cp -R "$GITHUB_WORKSPACE/public/." .
+          else
+            rm -rf preview && mkdir preview
+            cp -R "$GITHUB_WORKSPACE/public/." preview/
+          fi
+          touch .nojekyll
+          git add -A
+          if git diff --cached --quiet; then echo "No changes to publish."; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit --quiet -m "Publish ${TARGET} from ${{ inputs.ref }} @ ${GITHUB_SHA::7}"
+          for i in 1 2 3; do
+            if git push --quiet origin gh-pages; then exit 0; fi
+            echo "Push rejected, retrying after rebase ($i)…"; sleep 5
+            git pull --quiet --rebase origin gh-pages
+          done
+          exit 1
+
+      - name: Summary
+        run: echo "Published **${TARGET}** → ${{ steps.url.outputs.base }}" >> "$GITHUB_STEP_SUMMARY"

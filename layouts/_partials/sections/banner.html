@@ -1,0 +1,3 @@
+{{- $s := .s -}}
+{{- $style := $s.style | default "orange-red" -}}
+<h2 class="banner banner--{{ $style }}{{ if eq $s.align "center" }} is-center{{ end }}{{ if eq $s.size "large" }} is-large{{ end }}">{{ $s.text | default "" | $.page.RenderString }}</h2>

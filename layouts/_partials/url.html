@@ -1,0 +1,10 @@
+{{- /*
+  Turns a site path like "/sponsors/" or "/wp-content/uploads/x.png" into a URL that
+  works wherever the site is published (the live domain, the /preview/ copy, or a
+  github.io project address). Full URLs, mailto: links and #anchors pass through unchanged.
+*/ -}}
+{{- $u := . | default "" -}}
+{{- if and (hasPrefix $u "/") (not (hasPrefix $u "//")) -}}
+  {{- $u = strings.TrimPrefix "/" $u | relURL -}}
+{{- end -}}
+{{- return $u -}}

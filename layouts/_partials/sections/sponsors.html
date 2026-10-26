@@ -1,0 +1,16 @@
+{{- /* Sponsor tiers come from data/sponsors.yml so the home page and Sponsors page stay in sync. */ -}}
+{{- with hugo.Data.sponsors.tiers }}
+<div class="tiers cols--{{ len . }}">
+  {{- range . }}
+  <div class="tier">
+    <h2 class="tier__name" style="background-color: {{ .color | default "#eeeeee" | safeCSS }}">{{ .name }}</h2>
+    <div class="tier__logos">
+      {{- range .sponsors }}
+      {{- $img := printf `<img src="%s" alt="%s" loading="lazy"%s>` (partial "url.html" .logo) .name (cond (gt (int (.width | default 0)) 0) (printf ` style="width:%dpx"` (int .width)) "") }}
+      {{- if .url }}<a class="tier__logo" href="{{ .url }}">{{ $img | safeHTML }}</a>{{ else }}<span class="tier__logo">{{ $img | safeHTML }}</span>{{ end }}
+      {{- end }}
+    </div>
+  </div>
+  {{- end }}
+</div>
+{{- end }}
