@@ -8,7 +8,7 @@ sections:
     size: normal
   - type: text
     body: >+
-      **Bloominglabs is Indiana’s second hackerspace (also known as a
+      **Bloominglabs is Indiana’s third hackerspace (also known as a
       makerspace)!**
 
 
